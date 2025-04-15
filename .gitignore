@@ -1,0 +1,28 @@
+# Archivos de caché de Python
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Archivos de caché de otros sistemas
+.cache/
+*.cache
+
+# Archivos de audio
+*.wav
+
+# Archivos temporales comunes
+*.tmp
+*.temp
+*.swp
+*.swo
+*.~ 
+*~
+
+# Archivos generados por editores
+*.log
+.DS_Store
+Thumbs.db
+
+# Archivos de entorno virtual (por si estás usando uno)
+env/
+venv/
