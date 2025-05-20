@@ -44,7 +44,7 @@ def register():
     print(f'Registrando a: {user_id}')
     audio_path = os.path.join(DATASET_FOLDER, f"{user_id}.wav")
     file.save(audio_path)
-    reg_user_vocal_fingerprint[user_id] = asv.compute_vocal_fingerprint_desviacion_estandar(audio_path)
+    reg_user_vocal_fingerprint[user_id] = asv.compute_vocal_fingerprint_deltas(audio_path)
     
     return jsonify({"message": "Registro completado!!"})
 
@@ -67,7 +67,7 @@ def verify():
     # Calcular la huella vocal de la nueva muestra de audio
     test_audio_path = "temp.wav"
     file.save(test_audio_path)
-    test_fingerprint = asv.compute_vocal_fingerprint_desviacion_estandar(test_audio_path)
+    test_fingerprint = asv.compute_vocal_fingerprint_deltas(test_audio_path)
     
     # Comparamos ambas huellas vocales
     verified, distance = asv.compare_vocal_fingerprints(reg_user_vocal_fingerprint[user_id], test_fingerprint)  

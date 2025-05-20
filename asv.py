@@ -59,7 +59,36 @@ def compute_vocal_fingerprint_desviacion_estandar(audio_path, sr=16000, num_para
     fingerprint = np.concatenate([mfcc_mean, mfcc_std, mfcc_skew, mfcc_kurt])
 
     return fingerprint
+# Metodo para calcular usando derivadas, velocidad y aceleración
+def compute_vocal_fingerprint_deltas(audio_path, sr=16000, n_mfcc=13):
+    """
+    Extrae una huella vocal basada en MFCC + delta + delta-delta (media de cada uno).
+    Utiliza la primera derivada para calcular la velocidad del que habla y la seguda derivada para ver la aceleración vocal.
+    Args:
+        audio_path (str): Ruta al archivo de audio.
+        sr (int): Frecuencia de muestreo.
+        n_mfcc (int): Número de coeficientes MFCC.
 
+    Returns:
+        np.ndarray: Vector de características concatenadas.
+    """
+    y, sr = librosa.load(audio_path, sr=sr)
+    
+    # MFCCs
+    mfcc = librosa.feature.mfcc(y=y, sr=sr, n_mfcc=n_mfcc)
+
+    # Delta y Delta-Delta
+    delta = librosa.feature.delta(mfcc, order=1)
+    delta2 = librosa.feature.delta(mfcc, order=2)
+
+    # Calcular la media
+    mfcc_media = np.mean(mfcc, axis=1)
+    delta_media = np.mean(delta, axis=1)
+    delta2_media = np.mean(delta2, axis=1)
+
+    # Concatenar todo en un solo vector
+    fingerprint = np.concatenate([mfcc_media, delta_media, delta2_media])
+    return fingerprint
 
 
 def compare_vocal_fingerprints(x, y, threshold=100):
