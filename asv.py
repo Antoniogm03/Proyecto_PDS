@@ -1,6 +1,7 @@
 import librosa
 from scipy.spatial.distance import euclidean, cosine
 import numpy as np
+from scipy.stats import skew, kurtosis
 
 
 def compute_vocal_fingerprint(audio_path, sr=16000, num_parameters=13):
@@ -29,6 +30,36 @@ def compute_vocal_fingerprint(audio_path, sr=16000, num_parameters=13):
     
     # Calcular la media de cada coeficiente para obtener un vector representativo
     return np.mean(mfccs, axis=1)  
+
+# Metodo para calcular usando desviación estándar, asimetría y kurtosis
+def compute_vocal_fingerprint_desviacion_estandar(audio_path, sr=16000, num_parameters=13):
+    """
+    Extrae una huella vocal enriquecida con estadísticas de los coeficientes MFCC:
+    media, desviación estándar, skewness y kurtosis.
+    skewness y kurtosis son medidas de asimetría y apuntamiento de la distribución.
+    skewness mide la "asimetría" de la distribución.
+    kurtosis mide la "altura" de la distribución.
+
+    Returns:
+        np.ndarray: Vector de características enriquecido (4 × num_parameters).
+    """
+    # Cargar audio
+    y, sr = librosa.load(audio_path, sr=sr)
+
+    # Extraer MFCCs
+    mfccs = librosa.feature.mfcc(y=y, sr=sr, n_mfcc=num_parameters)
+
+    # Calcular estadísticas
+    mfcc_mean = np.mean(mfccs, axis=1)
+    mfcc_std = np.std(mfccs, axis=1)
+    mfcc_skew = skew(mfccs, axis=1)
+    mfcc_kurt = kurtosis(mfccs, axis=1)
+
+    # Concatenar todas en un solo vector
+    fingerprint = np.concatenate([mfcc_mean, mfcc_std, mfcc_skew, mfcc_kurt])
+
+    return fingerprint
+
 
 
 def compare_vocal_fingerprints(x, y, threshold=100):
