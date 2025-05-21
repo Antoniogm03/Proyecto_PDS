@@ -18,6 +18,7 @@ reg_user_vocal_fingerprint = dict()
 
 # Calculamos las huellas vocales de todos los audios en el directorio audios/
 for wav_file in iglob(os.path.join('audios', '*.wav')):
+    print(f'Calculando huella vocal para: {wav_file}')
     user_id = Path(wav_file).stem   # Nombre del ficher sin extensión
     reg_user_vocal_fingerprint[user_id] = asv.compute_vocal_fingerprint(wav_file)
 

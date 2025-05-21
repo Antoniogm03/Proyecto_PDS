@@ -1,6 +1,7 @@
 import librosa
 from scipy.spatial.distance import euclidean, cosine
 import numpy as np
+import soundfile as sf
 
 
 def spectral_subtraction(y, sr, n_fft=2048, hop_length=512, noise_frames=6):
@@ -50,7 +51,7 @@ def cepstral_mean_variance_normalization(mfccs):
 
     return normalized_mfccs
 
-'''
+
 def compute_vocal_fingerprint(audio_path, sr=16000, num_parameters=13):
     """
     Extrae la huella vocal de un audio mediante los coeficientes MFCC.
@@ -77,8 +78,8 @@ def compute_vocal_fingerprint(audio_path, sr=16000, num_parameters=13):
     
     # Calcular la media de cada coeficiente para obtener un vector representativo
     return np.mean(mfccs, axis=1)  
-'''
-def compute_vocal_fingerprint(audio_path, sr=16000, num_parameters=13):
+
+def compute_vocal_fingerprint2(audio_path, sr=16000, num_parameters=13):
     """
     Extrae la huella vocal (MFCC) aplicando reducción de ruido y normalización CMVN.
 
@@ -90,8 +91,13 @@ def compute_vocal_fingerprint(audio_path, sr=16000, num_parameters=13):
     Returns:
         np.ndarray: Vector de características normalizado.
     """
+    print(f'Leyendo archivo wav: {audio_path}')
     # Cargar audio
-    y, sr = librosa.load(audio_path, sr=sr)
+    # y, sr = librosa.load(audio_path, sr=sr)
+    
+    x, fs = sf.read(audio_path)
+    if fs != sr:
+        x = librosa.resample(x, fs, sr)
 
     # Aplicar reducción básica de ruido (sustracción espectral)
     y_denoised = spectral_subtraction(y, sr)
@@ -105,8 +111,45 @@ def compute_vocal_fingerprint(audio_path, sr=16000, num_parameters=13):
     # Retornar la media de los MFCC normalizados
     return np.mean(mfccs_normalized, axis=1)
 
+def compute_vocal_fingerprint_vector_caract(audio_path, sr=16000, num_mfcc=13):
+    """
+    Extrae un vector de características vocales:
+      - MFCC estáticos, delta y delta-delta
+      - CMVN
+      - Media y desviación típica de cada coeficiente
+    """
+    # 1. Lectura y remuestreo
+    x, fs = sf.read(audio_path)
+    if fs != sr:
+        x = librosa.resample(x.astype(float), orig_sr=fs, target_sr=sr)
+    
+    # 2. Reducción del ruido
+    x_dn = spectral_subtraction(x, sr)
+    
+    # 3. MFCC + delta + delta-delta
+    mfcc = librosa.feature.mfcc(y=x_dn, sr=sr, n_mfcc=num_mfcc)
+    delta = librosa.feature.delta(mfcc)
+    delta2 = librosa.feature.delta(mfcc, order=2)
+    
+    # 4. Normalización CMVN por tipo
+    mfcc  = cepstral_mean_variance_normalization(mfcc)
+    delta = cepstral_mean_variance_normalization(delta)
+    delta2= cepstral_mean_variance_normalization(delta2)
+    
+    # 5. Media y desviación típica a lo largo de los frames
+    def stats(mfcc):
+        media = np.mean(mfcc, axis=1)
+        desviacion = np.std(mfcc, axis=1)
+        return np.hstack([media, desviacion])
+    
+    s_mfcc = stats(mfcc)
+    s_delta = stats(delta)
+    s_delta2 = stats(delta2)
+    
+    # 6. Construir y devolver vector final
+    return np.concatenate([s_mfcc, s_delta, s_delta2])
 
-'''
+
 def compare_vocal_fingerprints(x, y, threshold=100):
     """
     Compara dos huellas vocales utilizando la distancia euclídea.
@@ -129,9 +172,9 @@ def compare_vocal_fingerprints(x, y, threshold=100):
     """
     distance = euclidean(x, y)
     return distance < threshold, distance
-'''
 
-def compare_vocal_fingerprints(x, y, threshold=50):
+
+def compare_vocal_fingerprints2(x, y, threshold=50):
     """
     Compara dos huellas vocales usando distancia euclídea.
 
