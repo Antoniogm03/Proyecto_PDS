@@ -110,7 +110,7 @@ def compute_vocal_fingerprint_nota_musical(audio_path, sr=16000):
     # Calcular promedio por semitono
     notas_media = np.mean(nota, axis=1)
 
-    return chroma_mean
+    return notas_media
 
 
 def compare_vocal_fingerprints(x, y, threshold=100):
