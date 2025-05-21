@@ -91,6 +91,28 @@ def compute_vocal_fingerprint_deltas(audio_path, sr=16000, n_mfcc=13):
     return fingerprint
 
 
+def compute_vocal_fingerprint_nota_musical(audio_path, sr=16000):
+    """
+    Extrae una huella vocal simple basada en el promedio por nota musical.
+
+    Args:
+        audio_path (str): Ruta al archivo de audio.
+        sr (int): Frecuencia de muestreo.
+
+    Returns:
+        np.ndarray: Vector de 12 dimensiones (una por nota musical).
+    """
+    y, sr = librosa.load(audio_path, sr=sr)
+
+    # Extraer nota musical 
+    nota = librosa.feature.chroma_stft(y=y, sr=sr)
+
+    # Calcular promedio por semitono
+    notas_media = np.mean(nota, axis=1)
+
+    return chroma_mean
+
+
 def compare_vocal_fingerprints(x, y, threshold=100):
     """
     Compara dos huellas vocales utilizando la distancia euclídea.
