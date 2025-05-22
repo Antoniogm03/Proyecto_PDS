@@ -112,6 +112,35 @@ def compute_vocal_fingerprint_nota_musical(audio_path, sr=16000):
 
     return notas_media
 
+def compute_vocal_fingerprint_espectrograma(audio_path, sr=16000, bandas=40):
+    """
+    Extrae una huella vocal basada en el promedio del espectrograma Mel.
+    Utiliza el espectrograma Mel para representar la energía en diferentes bandas de frecuencia.
+    Se calcula el promedio de energía por banda Mel y se devuelve como un vector.
+
+    Args:
+        audio_path (str): Ruta al archivo de audio.
+        sr (int): Frecuencia de muestreo.
+        n_mels (int): Número de bandas Mel a usar.
+
+    Returns:
+        np.ndarray: Vector de n_mels dimensiones.
+    """
+    y, sr = librosa.load(audio_path, sr=sr)
+
+    # Espectrograma Mel
+    S = librosa.feature.melspectrogram(y=y, sr=sr, n_mels=bandas)
+
+    # Convertir a decibelios (más parecido a percepción humana)
+    decibelios = librosa.power_to_db(S, ref=np.max)
+
+    # Promedio de energía por banda Mel
+    bandas_media = np.mean(decibelios, axis=1)
+
+    return bandas_media
+
+
+
 
 def compare_vocal_fingerprints(x, y, threshold=100):
     """
