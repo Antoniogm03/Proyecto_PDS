@@ -12,28 +12,63 @@
         }
 
         .titulo {
-            border-bottom: 1px solid #a2bdd8;
+            border-bottom: 2px solid #4c8ccc;
             padding-bottom: 0.5rem;
             margin-top: 2rem;
-            color: #70a2d1;
+            color: #256fb8;
             font-weight: bold;
+            text-align: center;
+        }
+
+        .id-container {
+            background-color: #a0bbda;
+            border-radius: 10px;
+            padding: 1rem;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            margin-top: 5px;
+        }
+
+        .subtitulo {
+            display: inline-block;
+            border: 2px solid #4c8ccc;
+            border-radius: 10px;
+            background-color: #b3dbeb;
+            padding: 0.5rem 1rem;
+            margin: 2rem auto 1rem;
+            color: #4884bd;
+            text-align: center;
+        }
+        
+        .buttons {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            border: 2px solid #4c8ccc;
+            border-radius: 12px;
+            padding: 0.5rem 1.5rem;
+            width: fit-content;
+            margin:  auto;
+        }
+
+        #audioPlayback {
+            margin-top: 0.25rem;
         }
     </style>
 </head>
-<body class="bg-light">
+<body>
     <div class="container mt-5">
         <div class="card shadow p-4">
             <h1 class="titulo">
                 <i class="bi bi-volume-up-fill me-2"></i>Biometría de Voz <i class="bi bi-volume-up-fill me-2"></i>
             </h1>
             
-            <div class="mb-3">
+            <div class="id-container ">
                 <label for="user_id" class="form-label">ID de Usuario:</label>
                 <input type="text" id="user_id" class="form-control" placeholder="Introduce tu ID">
             </div>
             
-            <h2 class="titulo">Registro</h2>
-            <div class="d-flex gap-2">
+            <h2 class="subtitulo">Registro</h2>
+            <div class="buttons">
                 <button id="recordRegister" class="btn btn-primary" onclick="toggleRecording('register')">          
                     <i class="bi bi-mic-fill"></i> Grabar
                 </button>
@@ -42,8 +77,8 @@
                 </button>
             </div>
             
-            <h2 class="titulo">Verificación</h2>
-            <div class="d-flex gap-2">
+            <h2 class="subtitulo">Verificación</h2>
+            <div class="buttons">
                 <button id="recordVerify" class="btn btn-primary" onclick="toggleRecording('verify')">
                     <i class="bi bi-mic-fill"></i> Grabar
                 </button>
@@ -52,10 +87,10 @@
                 </button>
             </div>
             
-            <h2 class="titulo">Grabación</h2>
+            <h2 class="subtitulo">Grabación</h2>
             <audio id="audioPlayback" controls class="w-100"></audio>
             
-            <h2 class="titulo">Resultado</h2>
+            <h2 class="subtitulo">Resultado</h2>
             <input type="text" id="result" class="form-control" readonly>
         </div>
     </div>
