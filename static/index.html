@@ -20,12 +20,44 @@
             text-align: center;
         }
 
+        .titulo:hover{
+            color: #0f5192;
+            border-bottom: 4px solid #0f5192;
+        }
+
         .id-container {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            width: 400px;
             background-color: #a0bbda;
             border-radius: 10px;
             padding: 1rem;
             box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-            margin-top: 20px;
+            margin: 20px auto 0 auto;
+        }
+
+        .id-container label{
+            white-space: nowrap;
+            color: #2867a5;
+            font-weight: bold;
+            margin-bottom: 0;  
+        }
+
+        .id-container input{
+            border: 2px solid #4c8ccc;
+        }
+
+        .id-container:hover{
+            background-color: #6f8daf;
+        }
+
+        .id-container label:hover{
+            color: #12406e;
+        }
+
+        .id-container input:hover{
+            border: 4px solid #265d94;
         }
 
         .subtitulo {
@@ -37,6 +69,12 @@
             margin: 2rem auto 1rem;
             color: #4884bd;
             text-align: center;
+        }
+
+        .subtitulo:hover{
+            color:#0f5192;
+            border: 4px solid #2a6daf;
+            text-decoration: underline;
         }
         
         .buttons {
@@ -50,11 +88,18 @@
             margin:  auto;
         }
 
+        .buttons:hover{
+            border: 4px solid #2a6daf;
+        }
+
         #audioPlayback {
             border: 2px solid #4c8ccc;
             border-radius: 12px;
             padding: 0.5rem 1.5rem;
-            margin-top: 0.25rem;
+        }
+
+        #audioPlayback:hover {
+            border: 4px solid #2a6daf;
         }
 
         #result {
@@ -67,7 +112,9 @@
             border-radius: 12px;
             text-align: center;
         }
-        
+        #result:hover{
+            border: 4px solid #2a6daf;
+        }
     </style>
 </head>
 <body>
