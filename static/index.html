@@ -53,6 +53,8 @@
         #audioPlayback {
             margin-top: 0.25rem;
         }
+
+
     </style>
 </head>
 <body>
@@ -91,7 +93,8 @@
             <audio id="audioPlayback" controls class="w-100"></audio>
             
             <h2 class="subtitulo">Resultado</h2>
-            <input type="text" id="result" class="form-control" readonly>
+            <div id="result"></div>
+            
         </div>
     </div>
 
@@ -144,18 +147,26 @@
                 });
 
                 const result = await response.json();
+                const resultContainer = document.getElementById('result');
+
                 if (result.error) {
                     alert(result.error);
                     return;
                 }
 
-                document.getElementById('result').value = result.verified !== undefined 
-                    ? (result.verified ? "✅ Usuario Verificado" : "❌ No Coincide") 
-                    : result.message;
+                if (result.verified !== undefined) {
+                    if (result.verified) {
+                        resultContainer.innerHTML = '<i class="bi bi-check-circle-fill text-success"></i> Usuario Verificado';
+                    } else {
+                        resultContainer.innerHTML = '<i class="bi bi-x-circle-fill text-danger"></i> No Coincide';
+                    }
+                } else {
+                    resultContainer.textContent = result.message;
+                }
 
             } catch (error) {
                 console.error("Error en la solicitud:", error);
-                alert("⚠️ Error al comunicarse con el servidor.");
+                alert('<i class="bi bi-exclamation-triangle-fill text-warning"></i> Error al comunicarse con el servidor.');
             }
         }
     </script>
