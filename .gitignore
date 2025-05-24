@@ -1,0 +1,16 @@
+# Archivos de audio
+audios/*
+temp.wav
+
+# Archivos temporales comunes
+*.log
+*.tmp
+*.temp
+*.swp
+*.swo
+*.~ 
+*~
+
+# Archivos de caché de Python
+__pycache__/
+.env
