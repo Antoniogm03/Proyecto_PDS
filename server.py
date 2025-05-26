@@ -70,11 +70,12 @@ def verify():
     test_fingerprint = asv.compute_vocal_fingerprint_espectrograma(test_audio_path)
     
     # Comparamos ambas huellas vocales
-    verified, distance = asv.compare_vocal_fingerprints(reg_user_vocal_fingerprint[user_id], test_fingerprint)  
+    verified, distance = asv.compare_vocal_fingerprints_scipy_cosine(reg_user_vocal_fingerprint[user_id], test_fingerprint)  
     print(f'Verified: {verified} - Distance: {distance}')
-
-    return jsonify({"verified": verified, "distance": distance})
-
+    return jsonify({
+        "verified": bool(verified),
+        "distance": float(distance)
+    })
 
 if __name__ == "__main__":
     app.run(debug=True)

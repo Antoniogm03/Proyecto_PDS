@@ -2,7 +2,7 @@ import librosa
 from scipy.spatial.distance import euclidean, cosine
 import numpy as np
 from scipy.stats import skew, kurtosis
-
+from scipy.spatial.distance import cosine
 
 def compute_vocal_fingerprint(audio_path, sr=16000, num_parameters=13):
     """
@@ -41,7 +41,7 @@ def compute_vocal_fingerprint_desviacion_estandar(audio_path, sr=16000, num_para
     kurtosis mide la "altura" de la distribución.
 
     Returns:
-        np.ndarray: Vector de características enriquecido (4 × num_parameters).
+        np.ndarray: Vector de características enriquecido (4 x num_parameters).
     """
     # Cargar audio
     y, sr = librosa.load(audio_path, sr=sr)
@@ -163,4 +163,8 @@ def compare_vocal_fingerprints(x, y, threshold=100):
         - También es posible probar otras métricas de distancia como la coseno o Manhattan.
     """
     distance = euclidean(x, y)
+    return distance < threshold, distance
+
+def compare_vocal_fingerprints_scipy_cosine(x, y, threshold=0.15):
+    distance = cosine(x, y)
     return distance < threshold, distance
