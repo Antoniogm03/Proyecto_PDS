@@ -5,34 +5,167 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Biometría de Voz</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #89b1d8;
+        }
+
+        .titulo {
+            border-bottom: 2px solid #4c8ccc;
+            padding-bottom: 0.5rem;
+            margin-top: 2rem;
+            color: #256fb8;
+            font-weight: bold;
+            text-align: center;
+        }
+
+        .titulo:hover{
+            color: #0f5192;
+            border-bottom: 4px solid #0f5192;
+        }
+
+        .id-container {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            width: 400px;
+            background-color: #a0bbda;
+            border-radius: 10px;
+            padding: 1rem;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            margin: 20px auto 0 auto;
+        }
+
+        .id-container label{
+            white-space: nowrap;
+            color: #2867a5;
+            font-weight: bold;
+            margin-bottom: 0;  
+        }
+
+        .id-container input{
+            border: 2px solid #4c8ccc;
+        }
+
+        .id-container:hover{
+            background-color: #6f8daf;
+        }
+
+        .id-container label:hover{
+            color: #12406e;
+        }
+
+        .id-container input:hover{
+            border: 4px solid #265d94;
+        }
+
+        .subtitulo {
+            display: inline-block;
+            border: 2px solid #4c8ccc;
+            border-radius: 10px;
+            background-color: #b3dbeb;
+            padding: 0.5rem 1rem;
+            margin: 2rem auto 1rem;
+            color: #4884bd;
+            text-align: center;
+        }
+
+        .subtitulo:hover{
+            color:#0f5192;
+            border: 4px solid #2a6daf;
+            text-decoration: underline;
+        }
+        
+        .buttons {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            border: 2px solid #4c8ccc;
+            border-radius: 12px;
+            padding: 0.5rem 1.5rem;
+            width: fit-content;
+            margin:  auto;
+        }
+
+        .buttons:hover{
+            border: 4px solid #2a6daf;
+        }
+
+        #audioPlayback {
+            border: 2px solid #4c8ccc;
+            border-radius: 12px;
+            padding: 0.5rem 1.5rem;
+        }
+
+        #audioPlayback:hover {
+            border: 4px solid #2a6daf;
+        }
+
+        #recordVerify{
+            background-color: red;
+        }
+
+        #recordRegister{
+            background-color: red;
+        }
+
+        #result {
+            display: flex;
+            justify-content: center;
+            margin: auto;
+            padding: 0.5rem 1.5rem;
+            width: fit-content;
+            border: 2px solid #4c8ccc;
+            border-radius: 12px;
+            text-align: center;
+            height: fit-content;
+        }
+
+        #result:hover{
+            border: 4px solid #2a6daf;
+        }
+
+    </style>
 </head>
-<body class="bg-light">
+<body>
     <div class="container mt-5">
         <div class="card shadow p-4">
-            <h1 class="text-center mb-4">Biometría de Voz</h1>
+            <h1 class="titulo">
+                <i class="bi bi-volume-up-fill me-2"></i>Biometría de Voz <i class="bi bi-volume-up-fill me-2"></i>
+            </h1>
             
-            <div class="mb-3">
+            <div class="id-container ">
                 <label for="user_id" class="form-label">ID de Usuario:</label>
                 <input type="text" id="user_id" class="form-control" placeholder="Introduce tu ID">
             </div>
             
-            <h2 class="mt-4">Registro</h2>
-            <div class="d-flex gap-2">
-                <button id="recordRegister" class="btn btn-primary" onclick="toggleRecording('register')">Grabar</button>
-                <button class="btn btn-success" onclick="sendAudio('register')">Enviar a servidor</button>
+            <h2 class="subtitulo">Registro</h2>
+            <div class="buttons">
+                <button id="recordRegister" class="btn btn-primary" onclick="toggleRecording('register')">          
+                    <i class="bi bi-mic-fill"></i> Grabar
+                </button>
+                <button class="btn btn-success" onclick="sendAudio('register')"> 
+                    <i class="bi bi-upload"></i> Enviar
+                </button>
             </div>
             
-            <h2 class="mt-4">Verificación</h2>
-            <div class="d-flex gap-2">
-                <button id="recordVerify" class="btn btn-primary" onclick="toggleRecording('verify')">Grabar</button>
-                <button class="btn btn-success" onclick="sendAudio('verify')">Enviar a servidor</button>
+            <h2 class="subtitulo">Verificación</h2>
+            <div class="buttons">
+                <button id="recordVerify" class="btn btn-primary" onclick="toggleRecording('verify')">
+                    <i class="bi bi-mic-fill"></i> Grabar
+                </button>
+                <button class="btn btn-success" onclick="sendAudio('verify')">
+                    <i class="bi bi-upload"></i> Enviar 
+                </button>
             </div>
             
-            <h2 class="mt-4">Grabación</h2>
+            <h2 class="subtitulo">Grabación</h2>
             <audio id="audioPlayback" controls class="w-100"></audio>
             
-            <h2 class="mt-4">Resultado</h2>
-            <input type="text" id="result" class="form-control" readonly>
+            <h2 class="subtitulo">Resultado</h2>
+            <div id="result"></div>
+            
         </div>
     </div>
 
@@ -45,13 +178,13 @@
             const recordButton = document.getElementById(`record${action.charAt(0).toUpperCase() + action.slice(1)}`);
             if (mediaRecorder && mediaRecorder.state === "recording") {
                 mediaRecorder.stop();
-                recordButton.innerText = "Grabar";
+                recordButton.innerHTML = '<i class="bi bi-mic-fill"></i> Grabar';            
             } else {
                 const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
                 mediaRecorder = new MediaRecorder(stream);
                 audioChunks = [];
                 mediaRecorder.start();
-                recordButton.innerText = "Detener";
+                recordButton.innerHTML = '<i class="bi bi-stop-circle-fill"></i> Detener';
 
                 mediaRecorder.ondataavailable = event => {
                     audioChunks.push(event.data);
@@ -86,14 +219,22 @@
                 });
 
                 const result = await response.json();
+                const resultContainer = document.getElementById('result');
+
                 if (result.error) {
                     alert(result.error);
                     return;
                 }
 
-                document.getElementById('result').value = result.verified !== undefined 
-                    ? (result.verified ? "Usuario Verificado" : "No Coincide") 
-                    : result.message;
+                if (result.verified !== undefined) {
+                    if (result.verified) {
+                        resultContainer.innerHTML = `<p><i class="bi bi-check-circle-fill text-success"></i> Usuario Verificado con ID: <strong>${userId}</strong></p>`;
+                    } else {
+                        resultContainer.innerHTML = '<p><i class="bi bi-x-circle-fill text-danger"></i> No Coincide</p>';
+                    }
+                } else {
+                    resultContainer.textContent = result.message;
+                }
 
             } catch (error) {
                 console.error("Error en la solicitud:", error);
