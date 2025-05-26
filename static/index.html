@@ -230,7 +230,7 @@
                     if (result.verified) {
                         resultContainer.innerHTML = `<p><i class="bi bi-check-circle-fill text-success"></i> Usuario Verificado con ID: <strong>${userId}</strong></p>`;
                     } else {
-                        resultContainer.innerHTML = '<i class="bi bi-x-circle-fill text-danger"></i> No Coincide';
+                        resultContainer.innerHTML = '<p><i class="bi bi-x-circle-fill text-danger"></i> No Coincide</p>';
                     }
                 } else {
                     resultContainer.textContent = result.message;
