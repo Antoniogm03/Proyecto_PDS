@@ -79,47 +79,36 @@ def compute_vocal_fingerprint(audio_path, sr=16000, num_parameters=13):
     # Calcular la media de cada coeficiente para obtener un vector representativo
     return np.mean(mfccs, axis=1)  
 
-def compute_vocal_fingerprint_vector_caract(audio_path, sr=16000, num_mfcc=13):
+def compute_vocal_fingerprint_vector(audio_path, sr=16000, n_mfcc=13):
     """
-    Extrae un vector de características vocales:
-      - MFCC estáticos, delta y delta-delta
-      - CMVN
-      - Media y desviación típica de cada coeficiente
+    Extrae vector de características vocales (MFCC estáticos, delta y delta-delta)
+    y devuelve la concatenación de medias y desviaciones típicas de cada coeficiente.
     """
-    # 1. Lectura y remuestreo
-    x, fs = sf.read(audio_path)
-    if fs != sr:
-        x = librosa.resample(x.astype(float), orig_sr=fs, target_sr=sr)
-    
-    # Asegurar que la señal esté en mono
-    if x.ndim > 1:
-        x = np.mean(x, axis=1)
+    # 1. Leer y re-muestrear
+    y, orig_sr = sf.read(audio_path)
+    if orig_sr != sr:
+        y = librosa.resample(y.astype(float), orig_sr, sr)
 
-    # 2. Reducción del ruido
-    x_dn = spectral_subtraction(x, sr)
-    
-    # 3. Normalización CMVN por tipo
-    def cepstral_mean_variance_normalization(mfccs):
-        mean = np.mean(mfccs, axis=1, keepdims=True)
-        std_dev = np.std(mfccs, axis=1, keepdims=True)
-        return (mfccs - mean) / (std_dev + 1e-8)
+    # 2. Convertir a mono
+    if y.ndim > 1:
+        y = np.mean(y, axis=1)
 
-    mfcc  = cepstral_mean_variance_normalization(mfcc)
-    delta = cepstral_mean_variance_normalization(delta)
-    delta2= cepstral_mean_variance_normalization(delta2)
-    
-    # 4. Media y desviación típica a lo largo de los frames
-    def stats(mfcc):
-        media = np.mean(mfcc, axis=1)
-        desviacion = np.std(mfcc, axis=1)
-        return np.hstack([media, desviacion])
-    
-    s_mfcc = stats(mfcc)
-    s_delta = stats(delta)
-    s_delta2 = stats(delta2)
-    
-    # 5. Construir y devolver vector final
-    return np.concatenate([s_mfcc, s_delta, s_delta2])
+    # 3. Reducción de ruido (asumiendo que spectral_subtraction está vectorizada)
+    y = spectral_subtraction(y, sr)
+
+    # 4. Calcular MFCC + delta + delta-delta
+    #    Resultado shape = (3*n_mfcc, n_frames)
+    mfcc = librosa.feature.mfcc(y=y, sr=sr, n_mfcc=n_mfcc)
+    delta = librosa.feature.delta(mfcc, order=1)
+    delta2 = librosa.feature.delta(mfcc, order=2)
+    feats = np.vstack((mfcc, delta, delta2))
+
+    # 5. Calcular medias y desviaciones por coeficiente (vectorizado)
+    mean = feats.mean(axis=1)
+    std  = feats.std(axis=1)
+
+    # 6. Devolver vector final [means | stds]
+    return np.concatenate((mean, std))
 
 
 def compare_vocal_fingerprints(x, y, threshold=100):
@@ -145,3 +134,37 @@ def compare_vocal_fingerprints(x, y, threshold=100):
     distance = euclidean(x, y)
     return distance < threshold, distance
 
+def compare_vocal_fingerprints_vector(fp1, fp2, threshold=0.9):
+    """
+    Compara dos vectores de huella vocal y devuelve:
+      sim la similitud de coseno entre fp1 y fp2 (float en [0,1])
+      is_same bool, True si sim >= threshold (mismo hablante)
+
+    Parámetros:
+      fp1, fp2 : array-like de forma idéntica (p.ej. salida de compute_vocal_fingerprint_vector)
+      threshold: umbral de similitud (por defecto 0.9)
+
+    Retorna:
+      sim, is_same
+    """
+    # Convertir a array float64
+    v1 = np.asarray(fp1, dtype=np.float64)
+    v2 = np.asarray(fp2, dtype=np.float64)
+
+    # Comprobar dimensiones
+    if v1.shape != v2.shape:
+        raise ValueError("Los vectores deben tener la misma forma, "
+                         f"pero recibí {v1.shape} y {v2.shape}")
+
+    # Calcular norma y proteger contra división por cero
+    norm1 = np.linalg.norm(v1)
+    norm2 = np.linalg.norm(v2)
+    if norm1 < 1e-8 or norm2 < 1e-8:
+        raise ValueError("Norma de alguno de los vectores casi cero; huella inválida")
+
+    # Similitud de coseno
+    sim = np.dot(v1, v2) / (norm1 * norm2)
+
+    # Clasificación
+    is_same = (sim >= threshold)
+    return sim, is_same
