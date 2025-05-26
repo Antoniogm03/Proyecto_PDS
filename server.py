@@ -4,6 +4,7 @@ import os
 from glob import iglob
 from pathlib import Path
 import asv
+import time
 
 # App que implementa el servidor de Flask
 app = Flask(__name__)
@@ -70,9 +71,17 @@ def verify():
     file.save(test_audio_path)
     test_fingerprint = asv.compute_vocal_fingerprint(test_audio_path)
     
+    # Medimos el tiempo de verificación
+    start_time = time.time()
+
     # Comparamos ambas huellas vocales
-    verified, distance = asv.compare_vocal_fingerprints(reg_user_vocal_fingerprint[user_id], test_fingerprint)  
+    verified, distance = asv.compare_vocal_fingerprints_vector(reg_user_vocal_fingerprint[user_id], test_fingerprint)  
+    
+    end_time = time.time()
+    elapsed = end_time - start_time
+
     print(f'Verified: {verified} - Distance: {distance}')
+    print(f'Tiempo de verificación: {elapsed:.6f} segundos')
 
     return jsonify({"verified": verified, "distance": distance})
 

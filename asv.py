@@ -35,7 +35,6 @@ def spectral_subtraction(y, sr, n_fft=2048, hop_length=512, noise_frames=6):
 
     return y_denoised
 
-
 def cepstral_mean_variance_normalization(mfccs):
     """
     Normalización cepstral media-varianza manual (CMVN).
@@ -51,7 +50,6 @@ def cepstral_mean_variance_normalization(mfccs):
     normalized_mfccs = (mfccs - mean) / (std_dev + 1e-8)
 
     return normalized_mfccs
-
 
 def compute_vocal_fingerprint(audio_path, sr=16000, num_parameters=13):
     """
@@ -80,37 +78,6 @@ def compute_vocal_fingerprint(audio_path, sr=16000, num_parameters=13):
     # Calcular la media de cada coeficiente para obtener un vector representativo
     return np.mean(mfccs, axis=1)  
 
-def compute_vocal_fingerprint_vector(audio_path, sr=16000, n_mfcc=13):
-    """
-    Extrae vector de características vocales (MFCC estáticos, delta y delta-delta)
-    y devuelve la concatenación de medias y desviaciones típicas de cada coeficiente.
-    """
-    # 1. Leer y re-muestrear
-    y, orig_sr = sf.read(audio_path)
-    if orig_sr != sr:
-        y = librosa.resample(y.astype(float), orig_sr, sr)
-
-    # 2. Convertir a mono
-    if y.ndim > 1:
-        y = np.mean(y, axis=1)
-
-    # 3. Reducción de ruido (asumiendo que spectral_subtraction está vectorizada)
-    y = spectral_subtraction(y, sr)
-
-    # 4. Calcular MFCC + delta + delta-delta
-    #    Resultado shape = (3*n_mfcc, n_frames)
-    mfcc = librosa.feature.mfcc(y=y, sr=sr, n_mfcc=n_mfcc)
-    delta = librosa.feature.delta(mfcc, order=1)
-    delta2 = librosa.feature.delta(mfcc, order=2)
-    feats = np.vstack((mfcc, delta, delta2))
-
-    # 5. Calcular medias y desviaciones por coeficiente (vectorizado)
-    mean = feats.mean(axis=1)
-    std  = feats.std(axis=1)
-
-    # 6. Devolver vector final [means | stds]
-    return np.concatenate((mean, std))
-
 
 def compare_vocal_fingerprints(x, y, threshold=100):
     """
@@ -134,40 +101,6 @@ def compare_vocal_fingerprints(x, y, threshold=100):
     """
     distance = euclidean(x, y)
     return distance < threshold, distance
-
-def compare_vocal_fingerprints_vector(fp1, fp2, threshold=0.9):
-    """
-    Compara dos vectores de huella vocal y devuelve:
-      sim la similitud de coseno entre fp1 y fp2 (float en [0,1])
-      is_same bool, True si sim >= threshold (mismo hablante)
-
-    Parámetros:
-      fp1, fp2 : array-like de forma idéntica (p.ej. salida de compute_vocal_fingerprint_vector)
-      threshold: umbral de similitud (por defecto 0.9)
-    Retorna:
-      sim, is_same
-    """
-    # Convertir a array float64
-    v1 = np.asarray(fp1, dtype=np.float64)
-    v2 = np.asarray(fp2, dtype=np.float64)
-
-    # Comprobar dimensiones
-    if v1.shape != v2.shape:
-        raise ValueError("Los vectores deben tener la misma forma, "
-                         f"pero recibí {v1.shape} y {v2.shape}")
-
-    # Calcular norma y proteger contra división por cero
-    norm1 = np.linalg.norm(v1)
-    norm2 = np.linalg.norm(v2)
-    if norm1 < 1e-8 or norm2 < 1e-8:
-        raise ValueError("Norma de alguno de los vectores casi cero; huella inválida")
-
-    # Similitud de coseno
-    sim = np.dot(v1, v2) / (norm1 * norm2)
-
-    # Clasificación
-    is_same = (sim >= threshold)
-    return sim, is_same
 
 def compare_vocal_fingerprints_coseno(x, y, threshold=0.2):
     """
