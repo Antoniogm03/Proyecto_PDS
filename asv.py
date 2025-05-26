@@ -2,6 +2,7 @@ import librosa
 from scipy.spatial.distance import euclidean, cosine
 import numpy as np
 import soundfile as sf
+from scipy.stats import pearsonr
 
 
 def spectral_subtraction(y, sr, n_fft=2048, hop_length=512, noise_frames=6):
@@ -116,11 +117,11 @@ def compare_vocal_fingerprints(x, y, threshold=100):
     Compara dos huellas vocales utilizando la distancia euclídea.
 
     Args:
-        x (array-like): Primera huella vocal.
-        y (array-like): Segunda huella vocal.
+        x: Primera huella vocal.
+        y: Segunda huella vocal.
         threshold (float, opcional): Umbral de decisión para determinar si pertenecen al mismo usuario. 
-                                     Valores más bajos hacen la verificación más estricta. 
-                                     Por defecto es 50.
+        Valores más bajos hacen la verificación más estricta. 
+        Por defecto es 50.
 
     Returns:
         tuple: 
@@ -143,7 +144,6 @@ def compare_vocal_fingerprints_vector(fp1, fp2, threshold=0.9):
     Parámetros:
       fp1, fp2 : array-like de forma idéntica (p.ej. salida de compute_vocal_fingerprint_vector)
       threshold: umbral de similitud (por defecto 0.9)
-
     Retorna:
       sim, is_same
     """
@@ -168,3 +168,60 @@ def compare_vocal_fingerprints_vector(fp1, fp2, threshold=0.9):
     # Clasificación
     is_same = (sim >= threshold)
     return sim, is_same
+
+def compare_vocal_fingerprints_coseno(x, y, threshold=0.2):
+    """
+    Compara dos huellas vocales utilizando la distancia del coseno.
+
+    Args:
+        x: Primera huella vocal.
+        y: Segunda huella vocal.
+        threshold (float, opcional): Umbral de decisión para determinar si pertenecen al mismo usuario. 
+        Valores más bajos hacen la verificación más estricta. 
+        Por defecto es 0.2.
+
+    Returns:
+        tuple: 
+            - bool: True si la distancia es menor que el umbral (misma persona), False en caso contrario.
+            - float: Valor de la distancia del coseno calculada.
+    """
+    
+    distance = cosine(x, y)
+    return distance < threshold, distance
+
+def compare_vocal_fingerprints_manhattan(x, y, threshold=10):
+    """
+    Compara dos huellas vocales usando la distancia Manhattan (L1).
+
+    Args:
+        x: Primera huella vocal.
+        y: Segunda huella vocal.
+        threshold: Umbral de decisión. 
+        Por defecto es 10.
+
+    Returns:
+        tuple:
+            - bool: True si la distancia es menor que el umbral, False en caso contrario.
+            - float: Distancia Manhattan calculada.
+    """
+    distance = np.sum(np.abs(np.array(x) - np.array(y)))
+    return distance < threshold, distance
+
+def compare_vocal_fingerprints_pearson(x, y, threshold=0.85):
+    """
+    Compara dos huellas vocales usando la correlación de Pearson.
+
+    Args:
+        x: Primera huella vocal.
+        y: Segunda huella vocal.
+        threshold: Umbral de correlación. Si la correlación es mayor que el umbral,
+        se considera la misma persona. Por defecto es 0.85.
+
+    Returns:
+        tuple:
+            - bool: True si la correlación es mayor que el umbral, False en caso contrario.
+            - float: Valor de la correlación de Pearson.
+    """
+    
+    correlation, _ = pearsonr(x, y)
+    return correlation > threshold, correlation
