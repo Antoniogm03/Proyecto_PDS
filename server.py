@@ -4,6 +4,7 @@ import os
 from glob import iglob
 from pathlib import Path
 import asv
+import time
 
 # App que implementa el servidor de Flask
 app = Flask(__name__)
@@ -18,8 +19,11 @@ reg_user_vocal_fingerprint = dict()
 
 # Calculamos las huellas vocales de todos los audios en el directorio audios/
 for wav_file in iglob(os.path.join('audios', '*.wav')):
+    print(f'Calculando huella vocal para: {wav_file}')
     user_id = Path(wav_file).stem   # Nombre del ficher sin extensión
+
     reg_user_vocal_fingerprint[user_id] = asv.compute_vocal_fingerprint_espectrograma(wav_file)
+
 
 
 @app.route("/")
@@ -44,7 +48,9 @@ def register():
     print(f'Registrando a: {user_id}')
     audio_path = os.path.join(DATASET_FOLDER, f"{user_id}.wav")
     file.save(audio_path)
+
     reg_user_vocal_fingerprint[user_id] = asv.compute_vocal_fingerprint_espectrograma(audio_path)
+
     
     return jsonify({"message": "Registro completado!!"})
 
@@ -67,11 +73,23 @@ def verify():
     # Calcular la huella vocal de la nueva muestra de audio
     test_audio_path = "temp.wav"
     file.save(test_audio_path)
-    test_fingerprint = asv.compute_vocal_fingerprint_espectrograma(test_audio_path)
+
+    test_fingerprint = asv.compute_vocal_fingerprint_deltas(test_audio_path)
+
     
+    # Medimos el tiempo de verificación
+    start_time = time.time()
+
     # Comparamos ambas huellas vocales
-    verified, distance = asv.compare_vocal_fingerprints_scipy_cosine(reg_user_vocal_fingerprint[user_id], test_fingerprint)  
+
+    verified, distance = asv.compare_vocal_fingerprints_coseno(reg_user_vocal_fingerprint[user_id], test_fingerprint)  
+    
+    end_time = time.time()
+    elapsed = end_time - start_time
+
     print(f'Verified: {verified} - Distance: {distance}')
+    print(f'Tiempo de verificación: {elapsed:.6f} segundos')
+
     return jsonify({
         "verified": bool(verified),
         "distance": float(distance)
@@ -79,6 +97,3 @@ def verify():
 
 if __name__ == "__main__":
     app.run(debug=True)
-
-
-    # Prueba push

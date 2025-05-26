@@ -1,8 +1,38 @@
 import librosa
 from scipy.spatial.distance import euclidean, cosine
 import numpy as np
-from scipy.stats import skew, kurtosis
-from scipy.spatial.distance import cosine
+import soundfile as sf
+from scipy.stats import skew, kurtosis, pearsonr
+
+def spectral_subtraction(y, sr, n_fft=2048, hop_length=512, noise_frames=6):
+    """
+    Realiza una reducción básica del ruido mediante sustracción espectral.
+
+    Args:
+        y (np.array): Señal de audio.
+        sr (int): Frecuencia de muestreo.
+        n_fft (int): Tamaño de la ventana FFT.
+        hop_length (int): Longitud de salto entre ventanas.
+        noise_frames (int): Número inicial de frames considerados ruido.
+
+    Returns:
+        np.array: Señal filtrada.
+    """
+    # Espectrograma del audio
+    D = librosa.stft(y, n_fft=n_fft, hop_length=hop_length)
+    magnitude, phase = np.abs(D), np.angle(D)
+
+    # Estimar espectro del ruido a partir de los primeros frames
+    noise_mag = np.mean(magnitude[:, :noise_frames], axis=1, keepdims=True)
+
+    # Sustracción espectral (asegura valores positivos)
+    magnitude_denoised = np.maximum(magnitude - noise_mag, 0.0)
+
+    # Reconstruir señal filtrada
+    D_denoised = magnitude_denoised * np.exp(1j * phase)
+    y_denoised = librosa.istft(D_denoised, hop_length=hop_length)
+
+    return y_denoised
 
 def compute_vocal_fingerprint(audio_path, sr=16000, num_parameters=13):
     """
@@ -39,9 +69,9 @@ def compute_vocal_fingerprint_desviacion_estandar(audio_path, sr=16000, num_para
     skewness y kurtosis son medidas de asimetría y apuntamiento de la distribución.
     skewness mide la "asimetría" de la distribución.
     kurtosis mide la "altura" de la distribución.
-
     Returns:
-        np.ndarray: Vector de características enriquecido (4 x num_parameters).
+      np.ndarray: Vector de características enriquecido (4 × num_parameters).
+
     """
     # Cargar audio
     y, sr = librosa.load(audio_path, sr=sr)
@@ -59,6 +89,7 @@ def compute_vocal_fingerprint_desviacion_estandar(audio_path, sr=16000, num_para
     fingerprint = np.concatenate([mfcc_mean, mfcc_std, mfcc_skew, mfcc_kurt])
 
     return fingerprint
+
 # Metodo para calcular usando derivadas, velocidad y aceleración
 def compute_vocal_fingerprint_deltas(audio_path, sr=16000, n_mfcc=13):
     """
@@ -139,19 +170,18 @@ def compute_vocal_fingerprint_espectrograma(audio_path, sr=16000, bandas=40):
 
     return bandas_media
 
-
-
+# ---------------- Comparadores de huellas vocales -------------------
 
 def compare_vocal_fingerprints(x, y, threshold=100):
     """
     Compara dos huellas vocales utilizando la distancia euclídea.
 
     Args:
-        x (array-like): Primera huella vocal.
-        y (array-like): Segunda huella vocal.
+        x: Primera huella vocal.
+        y: Segunda huella vocal.
         threshold (float, opcional): Umbral de decisión para determinar si pertenecen al mismo usuario. 
-                                     Valores más bajos hacen la verificación más estricta. 
-                                     Por defecto es 50.
+        Valores más bajos hacen la verificación más estricta. 
+        Por defecto es 50.
 
     Returns:
         tuple: 
@@ -165,6 +195,64 @@ def compare_vocal_fingerprints(x, y, threshold=100):
     distance = euclidean(x, y)
     return distance < threshold, distance
 
+def compare_vocal_fingerprints_coseno(x, y, threshold=0.2):
+    """
+    Compara dos huellas vocales utilizando la distancia del coseno.
+
+    Args:
+        x: Primera huella vocal.
+        y: Segunda huella vocal.
+        threshold (float, opcional): Umbral de decisión para determinar si pertenecen al mismo usuario. 
+        Valores más bajos hacen la verificación más estricta. 
+        Por defecto es 0.2.
+
+    Returns:
+        tuple: 
+            - bool: True si la distancia es menor que el umbral (misma persona), False en caso contrario.
+            - float: Valor de la distancia del coseno calculada.
+    """
+    
+    distance = cosine(x, y)
+    return distance < threshold, distance
+
+def compare_vocal_fingerprints_manhattan(x, y, threshold=10):
+    """
+    Compara dos huellas vocales usando la distancia Manhattan (L1).
+
+    Args:
+        x: Primera huella vocal.
+        y: Segunda huella vocal.
+        threshold: Umbral de decisión. 
+        Por defecto es 10.
+
+    Returns:
+        tuple:
+            - bool: True si la distancia es menor que el umbral, False en caso contrario.
+            - float: Distancia Manhattan calculada.
+    """
+    distance = np.sum(np.abs(np.array(x) - np.array(y)))
+    return distance < threshold, distance
+
+def compare_vocal_fingerprints_pearson(x, y, threshold=0.85):
+    """
+    Compara dos huellas vocales usando la correlación de Pearson.
+
+    Args:
+        x: Primera huella vocal.
+        y: Segunda huella vocal.
+        threshold: Umbral de correlación. Si la correlación es mayor que el umbral,
+        se considera la misma persona. Por defecto es 0.85.
+
+    Returns:
+        tuple:
+            - bool: True si la correlación es mayor que el umbral, False en caso contrario.
+            - float: Valor de la correlación de Pearson.
+    """
+    
+    correlation, _ = pearsonr(x, y)
+    return correlation > threshold, correlation
+
 def compare_vocal_fingerprints_scipy_cosine(x, y, threshold=0.15):
     distance = cosine(x, y)
     return distance < threshold, distance
+
