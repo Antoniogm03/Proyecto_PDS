@@ -4,6 +4,7 @@ import numpy as np
 import soundfile as sf
 from scipy.stats import skew, kurtosis, pearsonr
 
+
 def spectral_subtraction(y, sr, n_fft=2048, hop_length=512, noise_frames=6):
     """
     Realiza una reducción básica del ruido mediante sustracción espectral.
@@ -69,9 +70,9 @@ def compute_vocal_fingerprint_desviacion_estandar(audio_path, sr=16000, num_para
     skewness y kurtosis son medidas de asimetría y apuntamiento de la distribución.
     skewness mide la "asimetría" de la distribución.
     kurtosis mide la "altura" de la distribución.
-    Returns:
-      np.ndarray: Vector de características enriquecido (4 × num_parameters).
 
+    Returns:
+        np.ndarray: Vector de características enriquecido (4 × num_parameters).
     """
     # Cargar audio
     y, sr = librosa.load(audio_path, sr=sr)
@@ -195,6 +196,7 @@ def compare_vocal_fingerprints(x, y, threshold=100):
     distance = euclidean(x, y)
     return distance < threshold, distance
 
+
 def compare_vocal_fingerprints_coseno(x, y, threshold=0.2):
     """
     Compara dos huellas vocales utilizando la distancia del coseno.
@@ -251,8 +253,3 @@ def compare_vocal_fingerprints_pearson(x, y, threshold=0.85):
     
     correlation, _ = pearsonr(x, y)
     return correlation > threshold, correlation
-
-def compare_vocal_fingerprints_scipy_cosine(x, y, threshold=0.15):
-    distance = cosine(x, y)
-    return distance < threshold, distance
-
